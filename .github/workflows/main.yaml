@@ -30,3 +30,19 @@ jobs:
           plugin_languages_details: bytes-size, percentage
           plugin_languages_skipped: ""
           plugin_lines: yes
+
+          # Forks inherit the upstream contributor history, and GitHub returns
+          # `author: null` entries for deleted accounts. metrics v3.34 crashes in the
+          # lines plugin on those (reads contributor.author.login), then renders
+          # classic/partials/lines.ejs against the error object, which throws
+          # "Cannot read properties of undefined (reading 'includes')" and kills the
+          # whole render. Upstream fixes (lowlighter/metrics#1843, #1847) are unmerged,
+          # so skip the repos that carry null-author contributor records.
+          # NB: filter entries must be lowercase handles (matched against owner/repo).
+          # brandencobb/go-jose (forked 2026-10-29) carries one such record.
+          plugin_lines_skipped: brandencobb/go-jose
+
+          # Render retries default to 3 x 300s, which turned a deterministic render
+          # error into a 16 minute red build. Keep the retries, cut the backoff.
+          retries: 3
+          retries_delay: 60
